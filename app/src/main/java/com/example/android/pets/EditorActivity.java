@@ -116,10 +116,10 @@ public class EditorActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
 
         SQLiteDatabase db =mDbHelper.getWritableDatabase();
-        values.put(PetEntry.COLUMN_PETS_NAME,petName);
-        values.put(PetEntry.COLUMN_PETS_WEIGHT,petWeight);
-        values.put(PetEntry.COLUMN_PETS_BREED,petBreed);
-        values.put(PetEntry.COLUMN_PETS_GENDER,mGender);
+        values.put(PetEntry.COLUMN_PET_NAME,petName);
+        values.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
+        values.put(PetEntry.COLUMN_PET_BREED,petBreed);
+        values.put(PetEntry.COLUMN_PET_GENDER,mGender);
        long id = db.insert(PetEntry.TABLE_NAME,null,values);
         Toast.makeText(this,"Id of the pet is "+ id,Toast.LENGTH_SHORT).show();
 

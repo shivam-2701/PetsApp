@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.example.android.pets.data.PetDbHelper;
+import com.example.android.pets.data.PetsContract;
 import com.example.android.pets.data.PetsContract.PetEntry;
 
 
@@ -53,21 +54,22 @@ public class CatalogActivity extends AppCompatActivity {
     private void displayDatabaseInfo() {
         // To access our database, we instantiate our subclass of SQLiteOpenHelper
         // and pass the context, which is the current activity.
-        PetDbHelper mDbHelper = new PetDbHelper(this);
 
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
         //Projection to select specific columns form the db
         String [] projection ={
                 PetEntry._ID,
-                PetEntry.COLUMN_PETS_NAME,
-                PetEntry.COLUMN_PETS_GENDER
+                PetEntry.COLUMN_PET_NAME,
+                PetEntry.COLUMN_PET_GENDER,
+                PetEntry.COLUMN_PET_WEIGHT
         };
 
 
         // Perform this raw SQL query "SELECT _Id, name, gender  FROM pets"
         // to get a Cursor that contains all rows from the pets table.
+        /**
         Cursor cursor = db.query(PetEntry.TABLE_NAME,null,null,null,null,null,null);
+         */
+        Cursor cursor =getContentResolver().query(PetEntry.CONTENT_URI,projection,null,null,null);
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
 
         try {
@@ -80,12 +82,13 @@ public class CatalogActivity extends AppCompatActivity {
             // the information from each column in this order.
             displayView.setText("The pets table contains " + cursor.getCount() + " pets.\n\n");
             displayView.append(PetEntry._ID + " - " +
-                    PetEntry.COLUMN_PETS_NAME + "\n");
+                    PetEntry.COLUMN_PET_NAME + "\n");
 
             // Figure out the index of each column
             int idColumnIndex = cursor.getColumnIndex(PetEntry._ID);
-            int nameColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PETS_NAME);
-            int weightColumnIndex=cursor.getColumnIndex(PetEntry.COLUMN_PETS_WEIGHT);
+            int nameColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
+            int weightColumnIndex=cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT);
+            Log.v("Column Number","N "+nameColumnIndex + "i "+idColumnIndex + "w "+weightColumnIndex);
 
             // Iterate through all the returned rows in the cursor
             while (cursor.moveToNext()) {
@@ -114,10 +117,10 @@ public class CatalogActivity extends AppCompatActivity {
 
         //Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
-        values.put(PetEntry.COLUMN_PETS_NAME, "Toto");
-        values.put(PetEntry.COLUMN_PETS_BREED, "Terrier");
-        values.put(PetEntry.COLUMN_PETS_GENDER, PetEntry.GENDER_MALE);
-        values.put(PetEntry.COLUMN_PETS_WEIGHT, 7);
+        values.put(PetEntry.COLUMN_PET_NAME, "Toto");
+        values.put(PetEntry.COLUMN_PET_BREED, "Terrier");
+        values.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
+        values.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
         long newRowId = db.insert(PetEntry.TABLE_NAME,null ,values);
         if(newRowId==-1){

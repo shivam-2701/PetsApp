@@ -7,6 +7,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
 
 /**
  * {@link ContentProvider} for Pets app.
@@ -84,15 +85,65 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
-        return null;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case PETS:
+                return insertPet(uri, contentValues);
+            default:
+                throw new IllegalArgumentException("Insertion is not supported for " + uri);
+        }
     }
 
     /**
-     * Updates the data at the given selection and selection arguments, with the new ContentValues.
+     * Insert a pet into the database with the given content values. Return the new content URI
+     * for that specific row in the database.
      */
+    private Uri insertPet(Uri uri, ContentValues values) {
+
+        // TODO: Insert a new pet into the pets database table with the given ContentValues
+
+        // Once we know the ID of the new row in the table,
+        // return the new URI with the ID appended to the end of it\
+        checkValues(values);
+
+        SQLiteDatabase db =mdbHelper.getWritableDatabase();
+       long id = db.insert(PetsContract.PetEntry.TABLE_NAME,null,values);
+
+        return ContentUris.withAppendedId(uri, id);
+    }
+
+
+
     @Override
-    public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
-        return 0;
+    public int update(Uri uri, ContentValues contentValues, String selection,
+                      String[] selectionArgs) {
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case PETS:
+                return updatePet(uri, contentValues, selection, selectionArgs);
+            case PET_ID:
+                // For the PET_ID code, extract out the ID from the URI,
+                // so we know which row to update. Selection will be "_id=?" and selection
+                // arguments will be a String array containing the actual ID.
+                selection = PetsContract.PetEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                return updatePet(uri, contentValues, selection, selectionArgs);
+            default:
+                throw new IllegalArgumentException("Update is not supported for " + uri);
+        }
+    }
+
+    /**
+     * Update pets in the database with the given content values. Apply the changes to the rows
+     * specified in the selection and selection arguments (which could be 0 or 1 or more pets).
+     * Return the number of rows that were successfully updated.
+     */
+    private int updatePet(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+        checkUpdateValues(values);
+        SQLiteDatabase db =mdbHelper.getWritableDatabase();
+        int updateCount =db.update(PetsContract.PetEntry.TABLE_NAME,values,selection,selectionArgs);
+        return updateCount;
+
     }
 
     /**
@@ -109,5 +160,36 @@ public class PetProvider extends ContentProvider {
     @Override
     public String getType(Uri uri) {
         return null;
+    }
+
+    void checkUpdateValues(ContentValues values){
+        Integer gender = values.getAsInteger(PetsContract.PetEntry.COLUMN_PET_GENDER);
+        Integer weight = values.getAsInteger(PetsContract.PetEntry.COLUMN_PET_WEIGHT);
+
+        if(gender != null && PetsContract.PetEntry.isValidGender(gender)){
+            throw new IllegalArgumentException("Gender did not match");
+        }
+        if(weight!=null && weight<0){
+            throw new IllegalArgumentException("Weight cannot be negative");
+        }
+
+    }
+
+
+    //Sanity checks the passed values
+    void checkValues(ContentValues values){
+        Integer gender = values.getAsInteger(PetsContract.PetEntry.COLUMN_PET_GENDER);
+        String name = values.getAsString(PetsContract.PetEntry.COLUMN_PET_NAME);
+        Integer weight = values.getAsInteger(PetsContract.PetEntry.COLUMN_PET_WEIGHT);
+        if(name==null){
+            throw new IllegalArgumentException("Pet name cannot be null");
+        }
+        if(gender == null || PetsContract.PetEntry.isValidGender(gender)){
+            throw new IllegalArgumentException("Gender did not match");
+        }
+        if(weight!=null && weight<0){
+            throw new IllegalArgumentException("Weight cannot be negative");
+        }
+
     }
 }

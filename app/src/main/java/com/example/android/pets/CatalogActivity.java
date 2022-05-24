@@ -81,7 +81,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
 
     }
-
+    //Test
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

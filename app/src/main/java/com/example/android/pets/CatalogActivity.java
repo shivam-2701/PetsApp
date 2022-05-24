@@ -1,5 +1,6 @@
 package com.example.android.pets;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.android.pets.data.PetsContract.PetEntry;
@@ -32,18 +34,20 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
         // Setup FAB to open EditorActivity
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
-                startActivity(intent);
-            }
+        fab.setOnClickListener(view -> {
+            Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
+            startActivity(intent);
         });
         ListView listView = (ListView)findViewById(R.id.list);
 
 
         View emptyView = findViewById(R.id.empty_view);
         listView.setEmptyView(emptyView);
+        listView.setOnItemClickListener((adapterView, view, position, id) -> {
+            Intent intent =new Intent(CatalogActivity.this,EditorActivity.class);
+            intent.setData(ContentUris.withAppendedId(PetEntry.CONTENT_URI, id));
+            startActivity(intent);
+        });
         mpetCursorAdapter =new PetCursorAdapter(this,null);
         getSupportLoaderManager().initLoader(0, null, this);
         listView.setAdapter(mpetCursorAdapter);

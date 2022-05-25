@@ -131,7 +131,15 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String petName=mNameEditText.getText().toString().trim();
         String petBreed=mBreedEditText.getText().toString().trim();
         int petGender=mGender;
-        int petWeight=Integer.parseInt(mWeightEditText.getText().toString().trim());
+        String weightString =mWeightEditText.getText().toString().trim();
+        if(petName.isEmpty() && petBreed.isEmpty() && weightString.isEmpty() && petGender==PetEntry.GENDER_UNKNOWN){
+            Toast.makeText(this,"No pets Saved",Toast.LENGTH_SHORT).show();
+            return ;
+        }
+        int petWeight=0;
+        if(!weightString.isEmpty())
+        petWeight=Integer.parseInt(weightString);
+
         ContentValues values = new ContentValues();
 
 
@@ -167,7 +175,13 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
+                Intent intent =getIntent();
+                Uri uri = intent.getData();
+                if(uri ==null){
                insertPet();
+                }else{
+                    updatePet();
+                }
                finish();
                 return true;
             // Respond to a click on the "Delete" menu option
@@ -227,5 +241,22 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mNameEditText.setText("");
         mGenderSpinner.setSelection(0);
         mWeightEditText.setText("");
+    }
+
+    private void updatePet(){
+        String petName = mNameEditText.getText().toString().trim();
+        int petWeight = Integer.parseInt(mWeightEditText.getText().toString().trim());
+        setupSpinner();
+        int gender = mGender;
+        String petBreed = mBreedEditText.getText().toString().trim();
+        ContentValues values = new ContentValues();
+        values.put(PetEntry.COLUMN_PET_NAME,petName);
+        values.put(PetEntry.COLUMN_PET_GENDER,gender);
+        values.put(PetEntry.COLUMN_PET_BREED,petBreed);
+        values.put(PetEntry.COLUMN_PET_WEIGHT,petWeight);
+        Intent intent = getIntent();
+        Uri uri = intent.getData();
+        getContentResolver().update(uri,values,null,null);
+
     }
 }

@@ -16,13 +16,18 @@
 package com.example.android.pets;
 
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
+import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NavUtils;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,7 +43,7 @@ import com.example.android.pets.data.PetsContract.PetEntry;
 /**
  * Allows user to create a new pet or edit an existing one.
  */
-public class EditorActivity extends AppCompatActivity {
+public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /** EditText field to enter the pet's name */
     private EditText mNameEditText;
@@ -57,6 +62,8 @@ public class EditorActivity extends AppCompatActivity {
      * 0 for unknown gender, 1 for male, 2 for female.
      */
     private int mGender = 0;
+    // Uri form the intent
+
     private PetDbHelper mDbHelper= new PetDbHelper(this);
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +78,7 @@ public class EditorActivity extends AppCompatActivity {
         if(uri!=null){
             ActionBar actionBar = getSupportActionBar();
             actionBar.setTitle("Edit Pet");
-
-
+            getSupportLoaderManager().initLoader(0, null, this);
         }
 
         setupSpinner();
@@ -175,5 +181,51 @@ public class EditorActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        switch(id){
+            case 0:
+                Intent intent =getIntent();
+                Uri uri = intent.getData();
+                Log.i("Uri From intent",uri.toString());
+                String [] projection ={PetEntry._ID,PetEntry.COLUMN_PET_NAME,PetEntry.COLUMN_PET_BREED,PetEntry.COLUMN_PET_WEIGHT,PetEntry.COLUMN_PET_GENDER};
+                return new CursorLoader(this,uri,projection,null,null,null);
+            default:
+                throw new IllegalArgumentException("Wrong Id IN Editor LOADER");
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+            fillEditor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+            clearEditor();
+    }
+
+    private void fillEditor(Cursor cursor){
+        int nameCol = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
+        int breedCol =cursor.getColumnIndex(PetEntry.COLUMN_PET_BREED);
+        int genderCol =cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER);
+        int weightCol = cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT);
+
+
+        if(cursor.moveToFirst()){
+
+        mBreedEditText.setText(cursor.getString(breedCol));
+        mNameEditText.setText(cursor.getString(nameCol));
+        mGenderSpinner.setSelection(cursor.getInt(genderCol));
+        mWeightEditText.setText(cursor.getString(weightCol));
+        }
+    }
+    private void clearEditor(){
+        mBreedEditText.setText("");
+        mNameEditText.setText("");
+        mGenderSpinner.setSelection(0);
+        mWeightEditText.setText("");
     }
 }
